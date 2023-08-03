@@ -1,0 +1,51 @@
+version: "3"
+# Dockerエンジンのバージョン
+
+services:
+  # サービスの定義
+  app:
+    container_name: node_app
+    # 任意に設定できるがユニークな名前
+    restart: always
+    # コンテナが異常終了したときの挙動を指定
+    build: .
+    # Dockerfileがあるディレクトリの部分をimageとして作成するということ
+    ports:
+      - "8080:8080"
+      # ホストとコンテナ間のポートマッピング
+    links:
+      - db
+      # このコンテナのサービスとどのサービスがつながっているか示している
+    environment:
+      - DATABASE_HOST=db
+      # ここで指定しているのはdbの部分サービスを示している
+  db:
+    container_name: mysql_db
+    image: mysql:5.7
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    # environment:
+    #   MYSQL_ROOT_PASSWORD: rootpassword
+    #   # root権限のパスワード設定で任意に設定可
+    #   MYSQL_DATABASE: test_db
+    #   # データベースの名前の設定
+    #   MYSQL_USER: user
+    #   # 新しく作成するユーザーの名前
+    #   MYSQL_PASSWORD: password
+    #   # 新しいユーザーに対してのパスワード
+    volumes:
+      - db_data:/var/lib/mysql
+      # db_data Dockerがこの名前でボリュームを作成し、そこにデータを格納する
+      # /var/lib/mysql　コンテナ内のパスを指している。すでにimageに備わっているデフォルト機能、基本ここにためる
+    expose:
+      - "3306"
+      #　Docker内部のネットワーキングに対してのみポートを公開
+volumes:
+  db_data: {}
+  # ボリュームは、コンテナ間でデータを共有したり、データを永続化（コンテナが削除されてもデータが残るようにする）したりするために使用します。
